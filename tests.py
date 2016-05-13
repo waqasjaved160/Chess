@@ -181,7 +181,7 @@ class HarmlessChessTests(unittest.TestCase):
         x, y = 2, 2
         self.assertTrue(cls.check_for_king(x, y))
 
-    def test_check_for_knight_with_with_piece(self):
+    def test_check_for_knight_with_another_knight(self):
         """
 
         """
@@ -199,6 +199,23 @@ class HarmlessChessTests(unittest.TestCase):
         self.assertFalse(cls.check_for_knight(x, y))
 
         x, y = 3, 1
+        self.assertFalse(cls.check_for_knight(x, y))
+
+    def test_check_for_knight_with_another_piece(self):
+        """
+
+        """
+        cls = HarmlessChess()
+        cls.board_size_x = 4
+        cls.board_size_y = 4
+        cls.board = [
+            ['R1', '.', '.', '.'],
+            ['.', 'R2', '.', '.'],
+            ['.', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+        ]
+
+        x, y = 2, 3
         self.assertFalse(cls.check_for_knight(x, y))
 
 

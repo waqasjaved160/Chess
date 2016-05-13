@@ -135,11 +135,11 @@ class HarmlessChess(object):
         for j in xrange(self.board_size_x):
             for i in xrange(self.board_size_y):
                 if (abs(j - y) ** 2 + abs(i - x) ** 2 == 5 and
-                        constants.KNIGHT in self.board[j][i]):
+                        self.board[j][i] != '.'):
                     return False
         return True
 
-    def check_for_king(self, x, y, piece):
+    def check_for_king(self, x, y, piece=False):
         """
             Check if there is any king around this x,y points
         :return: False if king is present else True
@@ -260,16 +260,38 @@ class HarmlessChess(object):
             except ValueError:
                 print "Number can only be an integer"
 
-        # self.make_combinations_of_pieces()
-        # print self.combination_of_pieces
+        self.make_combinations_of_pieces()
+        print self.combination_of_pieces
 
-        # for combination in self.combination_of_pieces:
-        #     print "Combination: %s" % str(combination)
-        #     if self.make_board(combination):
-        #         print "All pieces places on board %s" % str(self.board)
+        tries = 0
+
+        for combination in self.combination_of_pieces:
+            print "Combination: %s" % str(combination)
+            while True:
+                if self.make_board(sorted(combination, key=lambda k: random())):
+                    print "All pieces places on board %s" % str(self.board)
+                    if self.board not in self.boards:
+                        self.boards.append(self.board)
+                    else:
+                        tries = 0
+                        break
+                elif tries >= 100:
+                    tries = 0
+                    break
+                else:
+                    tries += 1
+        # while True:
+        #     if self.make_board(sorted(
+        #             ['R1', 'N3', 'N1', 'R2', 'N4', 'N2'],
+        #             key=lambda x: random())):
         #         self.boards.append(self.board)
-        if self.make_board(['R1', 'N3', 'N1', 'R2', 'N4', 'N2']):
-            self.boards.append(self.board)
+        #         print "tries: %d" % tries
+        #         break
+        #     elif tries >= 100:
+        #         break
+        #     else:
+        #         tries += 1
+        # print tries
         # print self.boards
         for board in self.boards:
             for x in board:
