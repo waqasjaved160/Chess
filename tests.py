@@ -4,6 +4,8 @@
 
 import unittest
 
+from mock import patch, PropertyMock  # pragma: no cover
+
 from chess import HarmlessChess
 
 
@@ -11,9 +13,6 @@ class HarmlessChessTests(unittest.TestCase):
     """
         Test cases for HarmlessChess class
     """
-
-    def setUp(self):
-        pass
 
     def test_pieces_appended_to_a_list(self):
         cls = HarmlessChess()
@@ -272,6 +271,37 @@ class HarmlessChessTests(unittest.TestCase):
         x, y = 2, 3
         self.assertFalse(cls.check_for_queen(x, y, 'K'))
 
+    def test_check_for_queen_with_queen_affecting_diagonally(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 4
+        cls.board_size_y = 4
+        cls.board = [
+            ['R1', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+        ]
+
+        x, y = 2, 2
+        self.assertFalse(cls.check_for_queen(x, y, 'Q'))
+
+    def test_check_for_queen_with_queen_affecting_row_col(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 4
+        cls.board_size_y = 4
+        cls.board = [
+            ['R1', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+            ['.', '.', '.', '.'],
+        ]
+
+        x, y = 2, 0
+        self.assertFalse(cls.check_for_queen(x, y, 'Q'))
+
+        x, y = 0, 3
+        self.assertFalse(cls.check_for_queen(x, y, 'K'))
+
     def test_check_for_bishop_with_one_piece(self):
         cls = HarmlessChess()
         cls.board_size_x = 3
@@ -298,7 +328,176 @@ class HarmlessChessTests(unittest.TestCase):
         self.assertFalse(cls.check_for_bishop(x, y, 'R1'))
 
         x, y = 2, 0
-        self.assertFalse(cls.check_for_bishop(x, y, 'K2'))
+        self.assertFalse(cls.check_for_bishop(x, y, 'B2'))
+
+    def test_piece_in_danger(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        cls.board = [
+            ['K1', '.', 'B1'],
+            ['.', '.', '.'],
+            ['.', '.', '.'],
+        ]
+        x, y = 2, 1
+        self.assertFalse(cls.in_danger(x, y, 'K2'))
+
+    def test_piece_can_be_placed_on_board_without_any_harm(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        cls.board = [
+            ['K1', '.', 'B1'],
+            ['.', '.', '.'],
+            ['.', '.', '.'],
+        ]
+        x, y = 2, 1
+
+        expected_result = [
+            ['K1', '.', 'B1'],
+            ['.', '.', '.'],
+            ['.', 'K2', '.'],
+        ]
+
+        self.assertTrue(cls.place_without_harming(x, y, 'K2'))
+        self.assertEqual(cls.board, expected_result)
+
+    def test_piece_can_be_placed_on_board_on_preoccupied_place(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        cls.board = [
+            ['K1', '.', 'B1'],
+            ['.', '.', '.'],
+            ['.', 'K2', '.'],
+        ]
+        x, y = 2, 1
+
+        self.assertFalse(cls.place_without_harming(x, y, 'K2'))
+
+    def test_piece_can_be_placed_on_board_on_in_danger_place(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        cls.board = [
+            ['K1', '.', 'B1'],
+            ['.', '.', '.'],
+            ['.', '.', '.'],
+        ]
+        x, y = 2, 0
+
+        self.assertFalse(cls.place_without_harming(x, y, 'K2'))
+
+    def test_make_board_of_a_combination_of_pieces(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        combination = ['K1', 'K2', 'R1']
+        expected_result = [
+            ['K1', '.', 'K2'],
+            ['.', '.', '.'],
+            ['.', 'R1', '.']
+        ]
+
+        while True:
+            if cls.make_board(combination):
+                break
+        self.assertEqual(cls.board, expected_result)
+
+    def test_remove_duplicates(self):
+        cls = HarmlessChess()
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+        cls.boards = [
+            [
+                ['K1', '.', 'K2'],
+                ['.', '.', '.'],
+                ['.', 'R1', '.'],
+            ],
+            [
+                ['K1', '.', '.'],
+                ['.', '.', 'R1'],
+                ['K2', '.', '.'],
+            ]
+        ]
+
+        expected_result = [
+            [
+                ['K', '.', 'K'],
+                ['.', '.', '.'],
+                ['.', 'R', '.'],
+            ],
+            [
+                ['K', '.', '.'],
+                ['.', '.', 'R'],
+                ['K', '.', '.'],
+            ],
+            [
+                ['.', '.', 'K'],
+                ['R', '.', '.'],
+                ['.', '.', 'K'],
+            ]
+        ]
+
+        self.assertEqual(cls.remove_duplicates_and_add_missing_boards(),
+                         expected_result)
+
+    @patch('chess.raw_input', return_value=1)   # pragma: no cover
+    def test_user_input(self, return_ans):
+        cls = HarmlessChess()
+
+        self.assertEqual(cls.bishops, 0)
+        self.assertEqual(cls.kings, 0)
+        self.assertEqual(cls.knights, 0)
+
+        cls.get_user_input()
+
+        self.assertEqual(cls.bishops, 1)
+        self.assertEqual(cls.kings, 1)
+        self.assertEqual(cls.knights, 1)
+
+    @patch('chess.HarmlessChess.get_user_input')
+    @patch('chess.HarmlessChess.__init__', return_value=None)
+    def test_main_program_execution(self, a, b):
+        cls = HarmlessChess()
+
+        cls.board_size_x = 3
+        cls.board_size_y = 3
+
+        cls.bishops = 0
+        cls.knights = 0
+        cls.rooks = 1
+        cls.queens = 0
+        cls.kings = 2
+        cls.board = []
+        cls.boards = []
+        cls.pieces = []
+
+        cls.main()
+
+        boards = [
+            [
+                ['K', '.', 'K'],
+                ['.', '.', '.'],
+                ['.', 'R', '.']
+            ],
+            [
+                ['.', 'R', '.'],
+                ['.', '.', '.'],
+                ['K', '.', 'K']
+            ],
+            [
+                ['K', '.', '.'],
+                ['.', '.', 'R'],
+                ['K', '.', '.']
+            ],
+            [
+                ['.', '.', 'K'],
+                ['R', '.', '.'],
+                ['.', '.', 'K']
+            ]
+        ]
+        self.assertItemsEqual(cls.final_boards, boards)
 
 if __name__ == '__main__':
     unittest.main()

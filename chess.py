@@ -22,16 +22,6 @@ def display_boards(boards):
         print "-" * 25
 
 
-def display_board(board):
-    """
-        Given a single board this handy function will print in
-        a readable (matrix) form
-    :param board: List of rows containing chess pieces
-    """
-    for row_list in board:
-        print row_list
-
-
 class HarmlessChess(object):
     """
         Class for holding all methods required for Harmless Chess
@@ -48,6 +38,7 @@ class HarmlessChess(object):
         self.board = []
         self.boards = []
         self.pieces = []
+        self.final_boards = []
 
     def make_list_of_pieces(self):
         """
@@ -293,71 +284,6 @@ class HarmlessChess(object):
                 return False
         return True
 
-    def main(self):
-        """
-            Program execution starts from this method
-             - User is asked the board size
-             - User is asked about the number of pieces to be placed
-               on this board
-             - At the end all the boards formed from these pieces,
-               their count and total execution time are displayed
-        """
-
-        while True:
-            try:
-                self.board_size_x = int(
-                    raw_input("Please type the X size of board : "))
-                self.board_size_y = int(
-                    raw_input("Please type the Y size of board : "))
-                print "Size of board is %sx%s" % (
-                    self.board_size_x, self.board_size_y)
-                break
-            except ValueError:
-                print "Size can only be in integer"
-
-        while True:
-            try:
-                self.bishops = int(raw_input("Number of Bishops: "))
-                self.knights = int(raw_input("Number of Knights: "))
-                self.rooks = int(raw_input("Number of Rooks: "))
-                self.queens = int(raw_input("Number of Queens: "))
-                self.kings = int(raw_input("Number of Kings: "))
-                print "Bishops: %d, Knights: %d, Rooks: %d" % (
-                    self.bishops, self.knights, self.rooks)
-                print "Queens: %d, Kings: %d" % (self.queens, self.kings)
-                break
-            except ValueError:
-                print "Number can only be an integer"
-
-        self.make_list_of_pieces()
-
-        tries = 0
-        total_tries = 0
-        start_time = time.time()
-
-        items = sorted(self.pieces, key=lambda k: random())
-
-        while True:
-            if self.make_board(items):
-                self.boards.append(self.board)
-                items = sorted(self.pieces, key=lambda k: random())
-            elif tries >= 100:
-                items = sorted(self.pieces, key=lambda k: random())
-                tries = 0
-                total_tries += 1
-            else:
-                tries += 1
-
-            if total_tries >= 19:
-                break
-
-        no_duplicates = self.remove_duplicates_and_add_missing_boards()
-
-        display_boards(no_duplicates)
-        print "Total time taken: %d" % int(time.time() - start_time)
-
-        print "Total boards: %d" % len(no_duplicates)
-
     def remove_duplicates_and_add_missing_boards(self):
         """
             - Integers appended will be removed
@@ -396,6 +322,77 @@ class HarmlessChess(object):
                 no_duplicates.append(board)
 
         return no_duplicates
+
+    def get_user_input(self):
+        """
+            Get board info from user
+        """
+        while True:
+            try:
+                self.board_size_x = int(
+                    raw_input("Please type the X size of board : "))
+                self.board_size_y = int(
+                    raw_input("Please type the Y size of board : "))
+                print "Size of board is %sx%s" % (
+                    self.board_size_x, self.board_size_y)
+                break
+            except ValueError:
+                print "Size can only be in integer"
+
+        while True:
+            try:
+                self.bishops = int(raw_input("Number of Bishops: "))
+                self.knights = int(raw_input("Number of Knights: "))
+                self.rooks = int(raw_input("Number of Rooks: "))
+                self.queens = int(raw_input("Number of Queens: "))
+                self.kings = int(raw_input("Number of Kings: "))
+                print "Bishops: %d, Knights: %d, Rooks: %d" % (
+                    self.bishops, self.knights, self.rooks)
+                print "Queens: %d, Kings: %d" % (self.queens, self.kings)
+                break
+            except ValueError:
+                print "Number can only be an integer"
+
+    def main(self):
+        """
+            Program execution starts from this method
+             - User is asked the board size
+             - User is asked about the number of pieces to be placed
+               on this board
+             - At the end all the boards formed from these pieces,
+               their count and total execution time are displayed
+        """
+
+        self.get_user_input()
+
+        self.make_list_of_pieces()
+
+        tries = 0
+        total_tries = 0
+        start_time = time.time()
+
+        items = sorted(self.pieces, key=lambda k: random())
+
+        while True:
+            if self.make_board(items):
+                self.boards.append(self.board)
+                items = sorted(self.pieces, key=lambda k: random())
+            elif tries >= 100:
+                items = sorted(self.pieces, key=lambda k: random())
+                tries = 0
+                total_tries += 1
+            else:
+                tries += 1
+
+            if total_tries >= 19:
+                break
+
+        self.final_boards = self.remove_duplicates_and_add_missing_boards()
+
+        display_boards(self.final_boards)
+        print "Total time taken: %d" % int(time.time() - start_time)
+
+        print "Total boards: %d" % len(self.final_boards)
 
 
 if __name__ == '__main__':
